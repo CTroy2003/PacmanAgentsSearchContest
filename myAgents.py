@@ -26,51 +26,34 @@ but when you're ready to test your own agent, replace it with MyAgent
 def createAgents(num_pacmen, agent='MyAgent'):
     return [eval(agent)(index=i) for i in range(num_pacmen)]
 
-
-
 class MyAgent(Agent):
-   """
-   A multi-agent Pac-Man that minimizes duplicate target pursuit by locally
-   selecting the closest food dot that is not already "claimed" by a nearer agent.
-   It caches a BFS path to its chosen target and only recalculates when necessary.
-   """
+    """
+    Implementation of your agent.
+    """
+
+    def getAction(self, state):
+        """
+        Returns the next action the agent will take
+        """
+
+        "*** YOUR CODE HERE ***"
+        from search import breadthFirstSearch
+        from searchProblems import PositionSearchProblem
+        from game import Directions
+        from util import manhattanDistance
 
 
-   def getAction(self, state):
-       """
-       Returns the next action for this agent.
-       If the current target is no longer available or if the cached path is empty,
-       the agent selects a new target by examining available food dots and choosing
-       one that no other agent is closer to. It then computes a BFS path to that target.
-       Otherwise, it follows its cached path.
-       """
-       from search import breadthFirstSearch
-       from searchProblems import PositionSearchProblem
-       from game import Directions
-       from util import manhattanDistance
+        currentPos = state.getPacmanPosition(self.index)
+        foodList = state.getFood().asList()
+        numAgents = state.getNumPacmanAgents()
 
 
-       # Retrieve this agent's current position and the food grid.
-       currentPos = state.getPacmanPosition(self.index)
-       foodList = state.getFood().asList()
-       numAgents = state.getNumPacmanAgents()
-
-
-       # If no food remains, stop.
-       if not foodList:
-           return Directions.STOP
-
-
-       # If our current target is no longer available or our cached path is nearly empty, choose a new target.
-       if self.target not in foodList or not self.cachedPath:
-           # Sort food dots by Manhattan distance from our current position.
+        if self.target not in foodList:
            candidateDots = sorted(foodList, key=lambda dot: manhattanDistance(currentPos, dot))
            chosen = None
 
 
-           # Loop through candidate dots (from closest onward).
            for dot in candidateDots:
-               # Check if any other agent is closer to this dot.
                claimed = False
                for i in range(numAgents):
                    if i == self.index:
@@ -84,7 +67,6 @@ class MyAgent(Agent):
                    break
 
 
-           # If all dots appear claimed, simply pick the closest.
            if chosen is None:
                chosen = candidateDots[0]
 
@@ -92,27 +74,26 @@ class MyAgent(Agent):
            self.target = chosen
 
 
-           # Compute a BFS path from our current position to the chosen target.
-           problem = PositionSearchProblem(state, self.index, costFn=lambda x: 1, goal=self.target, warn=False, visualize=False)
-           self.cachedPath = breadthFirstSearch(problem)
+           problem = PositionSearchProblem(state, self.index, goal=self.target, warn=False)
+           self.path = breadthFirstSearch(problem)
 
 
-       # Follow the cached path: return the next action.
-       if self.cachedPath:
-           return self.cachedPath.pop(0)
-       else:
+        if self.path:
+           return self.path.pop(0)
+        else:
            return Directions.STOP
 
 
-   def initialize(self):
-       """
-       Called when the agent is first created.
-       Here, we initialize our local target and cached path.
-       """
-       self.target = None
-       self.cachedPath = []
-       self.path = []
+    def initialize(self):
+        """
+        Intialize anything you want to here. This function is called
+        when the agent is first created. If you don't need to use it, then
+        leave it blank
+        """
 
+        "*** YOUR CODE HERE"
+        self.target = None
+        self.path = []
 
 
 
